@@ -4,18 +4,20 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import model.exceptions.DomainException;
+
 public class Reservation {
 
 	private Integer roomNumber;
-	private Date checkIn, checkOut;
+	private Date checkIn;
+	private Date checkOut;
 	
-	private static SimpleDateFormat sdf =  new SimpleDateFormat("dd/MM/yyyy");
-	
-	public Reservation() {
-		
-	}
+	private static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 	
 	public Reservation(Integer roomNumber, Date checkIn, Date checkOut) {
+		if (!checkOut.after(checkIn)) {
+			throw new DomainException("Check-out date must be after check-in date");
+		}
 		this.roomNumber = roomNumber;
 		this.checkIn = checkIn;
 		this.checkOut = checkOut;
@@ -36,28 +38,35 @@ public class Reservation {
 	public Date getCheckOut() {
 		return checkOut;
 	}
-	
+
 	public long duration() {
-		long diff = checkOut.getTime() - checkIn.getTime(); //Pega os valores em milissegundos e subtrai
-		return TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS); //Converte esses milissegundos em dias e retorna o resultado
+		long diff = checkOut.getTime() - checkIn.getTime();
+		return TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
 	}
 	
-	public String updateDates(Date checkIn, Date checkOut) {
+	public void updateDates(Date checkIn, Date checkOut) {
 		Date now = new Date();
-		if(checkIn.before(now) || checkOut.before(now)) { //verifica se as datas fornecidas são de antes da data do sistema
-			return "Reservation dates for update must be future";
+		if (checkIn.before(now) || checkOut.before(now)) {
+			throw new DomainException("Reservation dates for update must be future dates");
 		}
-		if(!checkOut.after(checkIn)) {
-			return "Check-Out date must be after check-In date";
+		if (!checkOut.after(checkIn)) {
+			throw new DomainException("Check-out date must be after check-in date");
 		}
 		this.checkIn = checkIn;
 		this.checkOut = checkOut;
-		return null; //Caso o resultado seja nulo não ocorreu nenhum erro
 	}
 	
 	@Override
 	public String toString() {
-		return "Room " + roomNumber + ", check-in: " + sdf.format(checkIn) + ", check-out: " + sdf.format(checkOut + ", " + duration() + " nights");
+		return "Room "
+			+ roomNumber
+			+ ", check-in: "
+			+ sdf.format(checkIn)
+			+ ", check-out: "
+			+ sdf.format(checkOut)
+			+ ", "
+			+ duration()
+			+ " nights";
 	}
 	
 }
